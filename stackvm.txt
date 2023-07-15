@@ -1,0 +1,36 @@
+const imm : const 0, const 1, const -1 ... // immediate value onto stack
+push i : push 0, push 1, .. // slot number instead of variable names
+pop i : pop 0, pop 1, ..    // slot number
+binaryop/unaryop : add, sub, rem, neg... // perform calculation, taking from stack and pushing result
+jmpz offset, jmp offset : jmpz false_1, jmp add // jump if zero to offset, unconditional jump to offset
+fn name : fn main, fn add, ... // function declaration, use as jump label
+arg n: put arguments in seperate memory for function calls to use as local variables
+call name : call add // call function -> push ic to call stack, then jump, push basepointer to some stack, set basepointer to before or after arguments?
+ret i: ret 0, ret 3, .. // return value from slot, then pop ic from call stack
+load/store locals/globals
+
+constant pool at the end
+unique memoryunits per function call? or one stack frame for all
+
+********
+       ^    ->  operand size 0 = 4 byte, 1 = 8 byte; 2
+ ^^^^^^     ->  operation (add, sub, ...); -> + - * / % mod << >> >>> & | ^ - ~ ++ -- ^^
+                add, sub, mul, div, rem, mod, shl, shr, sar(shift arithmetic), and, or, xor, neg, bitneg/comp(lement), inc, dec, pow; 17
+^           -> mode switch: arithmetic operation, control flow ops (comparisons, jumps, etc); 2
+                comp: &&, ||, !, <, >, <=, >=, ==, !=, ==0, !=0
+            -> comparison: log_and, log_or, log_not, lt, gt, le, ge, eq, neq, ze, nze; 11
+            -> jump w/condition: zero, nonzero, neg, pos, lt, gt, le, ge, eq, neq; 10; below/above for unsigned, maybe just use jmpz
+            -> jmp, call, ret, exit, push, pop, const/imm; 7
+            -> relative mode, absolute mode; 2; relative allows relocating of modules (short jumps are usually relative, eg. loops)
+            -> extend, signextend; 2; sext_i8_i32, trnc_i32_i8, ext_u8_u64, conv_i32_f32
+ ^          -> relative, absolute
+  ^         -> direct, indirect (address is on stack or in variable)
+   ^^^      -> jmp, jmpz, jmpnz, 
+            -> store/load i : store 0, load 1, .. // store/load at/from index i, based on basePointer, always 2 bytes? so max 65k bytes per function?
+
+call addr: store returnAddress and base/framePointer in callstack, then jmp to addr
+ret: restore framePointer, jmp to returnAddress, return values are on stack to grab
+
+binary header:
+4 byte magic number, version number, size of constant pool, section sizes
+or start constant pool, end constant pool, type > value(s)

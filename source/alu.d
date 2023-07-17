@@ -4,7 +4,7 @@ import memory, opcode, bytecode;
 
 struct CallFrame
 {
-    public uint returnAddress, framePointer;
+    uint returnAddress, framePointer;
 }
 
 struct ExecutionUnit

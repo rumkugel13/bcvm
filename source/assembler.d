@@ -7,19 +7,7 @@ import std.range : array;
 import std.stdio : writeln;
 import std.conv : to;
 import std.array : appender;
-import opcode;
-
-enum Section
-{
-    Text,
-    Data,
-    BSS
-}
-
-struct Bytecode
-{
-    ubyte[] textSection, dataSection;
-}
+import opcode, bytecode;
 
 Bytecode assemble(string assembly)
 {
@@ -203,8 +191,7 @@ unittest
     import alu;
 
     ExecutionUnit e;
-    e.instructions = bc.textSection;
-    e.globals.memory = bc.dataSection;
+    e.loadBytecode(bc);
     e.run();
     assert(e.exitCode == 99);
 }
@@ -226,8 +213,7 @@ unittest
     import alu;
 
     ExecutionUnit e;
-    e.instructions = bc.textSection;
-    e.globals.memory = bc.dataSection;
+    e.loadBytecode(bc);
     e.run();
     assert(e.exitCode == 99);
 }
@@ -253,8 +239,7 @@ unittest
     import alu;
 
     ExecutionUnit e;
-    e.instructions = bc.textSection;
-    e.globals.memory = bc.dataSection;
+    e.loadBytecode(bc);
     e.run();
     assert(e.exitCode == 77);
 }

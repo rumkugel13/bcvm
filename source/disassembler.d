@@ -5,7 +5,21 @@ import std.array : appender;
 import std.conv : to;
 import std.bitmanip : peek;
 import std.string : format, split;
-import opcode;
+import opcode, bytecode;
+
+string disassemble(Bytecode bc)
+{
+    auto data = disassembleData(bc.dataSection);
+    auto text = disassemble(bc.textSection);
+    return data ~ text;
+}
+
+string disassembleData(ubyte[] data)
+{
+    auto app = appender!string();
+    // todo: implement
+    return app.opSlice;
+}
 
 string disassemble(ubyte[] machinecode)
 {

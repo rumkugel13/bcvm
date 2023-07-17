@@ -83,6 +83,45 @@ struct StackUnit
     }
 }
 
+struct GenericStack(T)
+{
+    T[] memory;
+    size_t size;
+
+    void push(T data)
+    {
+        reserve(T.sizeof);
+        memory[size] = data;
+        size += T.sizeof;
+    }
+
+    T pop()
+    {
+        assert(size >= T.sizeof);
+        size -= T.sizeof;
+        return memory[size];
+    }
+
+    T peek()
+    {
+        assert(size >= T.sizeof);
+        return memory[size - T.sizeof];
+    }
+
+    private void reserve(size_t bytes)
+    {
+        if (memory.length == 0)
+        {
+            memory.length = initialCapacity;    // note: initialize min amount of bytes available
+        }
+        
+        while (size + bytes > memory.length)
+        {
+            memory.length *= 2;
+        }
+    }
+}
+
 unittest
 {
     StackUnit m;
@@ -114,4 +153,16 @@ unittest
     m.store!uint(77, 8);
     m.store!uint(2123, 12);
     assert(m.load!uint(12) == 2123);
+}
+
+unittest
+{
+    GenericStack!int stack;
+    stack.push(5);
+    stack.push(44);
+    assert(stack.pop() == 44);
+    assert(stack.size == int.sizeof * 1);
+    assert(stack.peek() == 5);
+    assert(stack.pop() == 5);
+    assert(stack.size == 0);
 }

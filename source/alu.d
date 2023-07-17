@@ -1,15 +1,28 @@
 module alu;
 
-import memory, opcode;
+import memory, opcode, bytecode;
+
+struct CallFrame
+{
+    public uint returnAddress, framePointer;
+}
 
 struct ExecutionUnit
 {
-    StackUnit operands, callStack, frameStack;
+    StackUnit operands;
+    GenericStack!CallFrame callframeStack;
     MemoryUnit globals, locals;
     ubyte[] instructions;
     size_t instructionPointer = 0;
     int exitCode = 0;
     bool isRunning = true;
+
+    public void loadBytecode(Bytecode bc)
+    {
+        instructions = bc.textSection;
+        globals.memory = bc.dataSection;
+        instructionPointer = 0;
+    }
 
     public void run()
     {
@@ -227,8 +240,9 @@ struct ExecutionUnit
     {
         auto addr = readImmediateOperand!T();
         uint ret = cast(uint) instructionPointer;
-        callStack.push!uint(ret); // refactor: use u32 for values for now
-        frameStack.push!uint(cast(uint)locals.usedBytes);
+        // callStack.push!uint(ret); // refactor: use u32 for values for now
+        // frameStack.push!uint(cast(uint) locals.usedBytes);
+        callframeStack.push(CallFrame(ret, cast(uint) locals.usedBytes));
         assert(addr < instructions.length);
         instructionPointer = addr; // refactor: absolute value for now
         debugPrint("Call: ", addr);
@@ -236,13 +250,14 @@ struct ExecutionUnit
 
     private void ret()
     {
-        if (callStack.stackPointer > 0)
+        if (callframeStack.size > 0)
         {
-            uint addr = callStack.pop!uint();
-            uint frame = frameStack.pop!uint();
-            locals.usedBytes = frame;
-            instructionPointer = addr;
-            debugPrint("Ret: ", addr, ", ", operands.peek!int());
+            // uint addr = callStack.pop!uint();
+            // uint frame = frameStack.pop!uint();
+            auto callframe = callframeStack.pop();
+            locals.usedBytes = callframe.framePointer;
+            instructionPointer = callframe.returnAddress;
+            debugPrint("Ret: ", callframe.returnAddress, ", ", operands.peek!int());
         }
         else
         {
@@ -255,18 +270,18 @@ struct ExecutionUnit
     {
         auto addr = readImmediateOperand!U();
         auto a = operands.pop!T();
-        auto offset = frameStack.stackPointer > 0 ? frameStack.peek!uint() : 0;
+        auto offset = callframeStack.size > 0 ? callframeStack.peek().framePointer : 0;
         locals.store!T(a, addr + offset);
-        debugPrint("Store: ", a, " at ", addr, " in frame ", callStack.stackPointer / uint.sizeof);
+        debugPrint("Store: ", a, " at ", addr, " in frame ", callframeStack.size / CallFrame.sizeof);
     }
 
     private void load(T, U)()
     {
         auto addr = readImmediateOperand!U();
-        auto offset = frameStack.stackPointer > 0 ? frameStack.peek!uint() : 0;
+        auto offset = callframeStack.size > 0 ? callframeStack.peek().framePointer : 0;
         auto a = locals.load!T(addr + offset);
         operands.push!T(a);
-        debugPrint("Load: ", a, " from ", addr, " in frame ", callStack.stackPointer / uint.sizeof);
+        debugPrint("Load: ", a, " from ", addr, " in frame ", callframeStack.size / CallFrame.sizeof);
     }
 
     private void store_global(T, U)()

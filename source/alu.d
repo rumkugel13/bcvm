@@ -113,6 +113,12 @@ struct ExecutionUnit
             case OpCode.jmp_abs_i32:
                 jmp_abs!(int)();
                 break;
+            case OpCode.jmp_rel_i8:
+                jmp_rel!byte();
+                break;
+            case OpCode.jmp_rel_i16:
+                jmp_rel!short();
+                break;
 
             case OpCode.ext_i8_i32:
                 ext!(byte, int)();
@@ -399,7 +405,15 @@ struct ExecutionUnit
         auto addr = readImmediateOperand!U();
         assert(addr < instructions.length);
         instructionPointer = addr;
-        debugPrint("Jmp: ", addr);
+        debugPrint("Jmp_abs: ", addr);
+    }
+
+    private void jmp_rel(U)()
+    {
+        auto offset = readImmediateOperand!U();
+        assert(instructionPointer + offset < instructions.length);
+        instructionPointer += offset;
+        debugPrint("Jmp_rel: ", offset);
     }
 
     private void ext(T, U)()
@@ -805,7 +819,7 @@ auto makeFibRec(int n = 10)
 
     auto fibass = assemble(fib);
     ExecutionUnit fibalu;
-    fibalu.instructions = fibass;
+    fibalu.instructions = fibass.textSection;
     return fibalu;
 }
 
@@ -855,7 +869,7 @@ auto makeFibLoop(int n = 10)
 
     auto fibass = assemble(fib);
     ExecutionUnit fibalu;
-    fibalu.instructions = fibass;
+    fibalu.instructions = fibass.textSection;
     return fibalu;
 }
 

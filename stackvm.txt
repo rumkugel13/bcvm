@@ -34,3 +34,13 @@ ret: restore framePointer, jmp to returnAddress, return values are on stack to g
 binary header:
 4 byte magic number, version number, size of constant pool, section sizes
 or start constant pool, end constant pool, type > value(s)
+
+skip_eq: skip next instruction if operands are equal, usually followed by unconditional jump (see lua 5.0+), or noop
+
+.data/.text sections, switch mode in assembler, seperate appenders
+.int 33 -> reserve 4 bytes (int) and put 33 in there
+.short 12 -> reserve 2 bytes ...
+header specifies how much bytes the data/text section uses,
+    vm copies data bytes directly to globals (better unified memory, for pointer access)
+.ascii for strings
+hi: .ascii "Hello, World!\n" 

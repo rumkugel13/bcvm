@@ -35,13 +35,13 @@ void main()
     writeln("Assembler OK");
 
     ExecutionUnit alu;
-    alu.instructions = bytecode;
+    alu.instructions = bytecode.textSection;
     alu.run();
     assert(alu.exitCode == 59);
 
     writeln("ExecutionUnit OK");
 
-    auto assembly = disassemble(bytecode);
+    auto assembly = disassemble(bytecode.textSection);
     write(assembly);
 
     writeln("Disassembler OK");
@@ -70,14 +70,14 @@ void main()
 
     writeln("Assembler OK");
 
-    auto assembly2 = disassemble(bytecode2);
+    auto assembly2 = disassemble(bytecode2.textSection);
     write(assembly2);
     stdout.flush();
 
     writeln("Disassembler OK");
 
     ExecutionUnit alu2;
-    alu2.instructions = bytecode2;
+    alu2.instructions = bytecode2.textSection;
     alu2.run();
     assert(alu2.exitCode == 25);
 
@@ -110,11 +110,11 @@ void main()
 
     auto fibass = assemble(fib);
     writeln(fibass);
-    auto fibdis = disassemble(fibass);
+    auto fibdis = disassemble(fibass.textSection);
     writeln(fibdis);
     stdout.flush();
     ExecutionUnit fibalu;
-    fibalu.instructions = fibass;
+    fibalu.instructions = fibass.textSection;
     fibalu.run();
     writeln("Fib of ", number, " is ", fibalu.exitCode);
 }

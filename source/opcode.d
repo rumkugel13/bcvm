@@ -29,6 +29,8 @@ enum OpCode : ubyte
     jmp_nz_i32_abs_i32, // jump if not zero, reading i32 from stack, jumping to absolute address given by i32 in bytecode
     jmp_z_i32_abs_i32,
     jmp_abs_i32,
+    jmp_rel_i8,
+    jmp_rel_i16,
 
     cmp_lt_i32 = 64,
     cmp_lt_i64,

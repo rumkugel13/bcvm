@@ -1,7 +1,7 @@
 module assembler;
 
 import std.bitmanip : write;
-import std.string : split, splitLines, strip, startsWith, empty;
+import std.string : split, splitLines, strip, startsWith, empty, isNumeric;
 import std.algorithm : map;
 import std.range : array;
 import std.stdio : writeln;
@@ -9,11 +9,25 @@ import std.conv : to;
 import std.array : appender;
 import opcode;
 
-ubyte[] assemble(string assembly)
+enum Section
+{
+    Text,
+    Data,
+    BSS
+}
+
+struct Bytecode
+{
+    ubyte[] textSection, dataSection;
+}
+
+Bytecode assemble(string assembly)
 {
     auto app = appender!(ubyte[])();
+    auto dataAppender = appender!(ubyte[])();
     long[string] labelMap;
     string[long] missingAddressMap;
+    Section section = Section.Text;
 
     void putOpWithLabel(T)(OpCode op, string label)
     {
@@ -29,6 +43,7 @@ ubyte[] assemble(string assembly)
         }
     }
 
+    // refactor: use proper parser?
     foreach (line; assembly.splitLines())
     {
         line = line.strip();
@@ -38,11 +53,31 @@ ubyte[] assemble(string assembly)
         }
         else if (line.startsWith(":"))
         {
-            labelMap[line[1 .. $]] = app.opSlice.length;
+            if (section == Section.Text)
+                labelMap[line[1 .. $]] = app.opSlice.length;
+            else
+                labelMap[line[1 .. $]] = dataAppender.opSlice.length;
         }
         else if (line.startsWith("."))
         {
-            assert(false, "Not implemented");
+            auto parts = line.split();
+            auto directive = parts[0];
+            auto operand = parts.length > 1 ? parts[1] : "";
+
+            switch (directive)
+            {
+            case ".data":
+                section = Section.Data;
+                break;
+            case ".text":
+                section = Section.Text;
+                break;
+            case ".int":
+                dataAppender.put(makeImm(to!int(operand)));
+                break;
+            default:
+                assert(false, "Unknown section/directive " ~ line);
+            }
         }
         else
         {
@@ -63,6 +98,18 @@ ubyte[] assemble(string assembly)
                 break;
             case "loadi":
                 app.put(makeOpWithImm(OpCode.load_i32_i32, to!int(operand)));
+                break;
+            case "storegi":
+                if (operand.isNumeric)
+                    app.put(makeOpWithImm(OpCode.store_global_i32_i32, to!int(operand)));
+                else
+                    putOpWithLabel!int(OpCode.store_global_i32_i32, operand);
+                break;
+            case "loadgi":
+                if (operand.isNumeric)
+                    app.put(makeOpWithImm(OpCode.load_global_i32_i32, to!int(operand)));
+                else
+                    putOpWithLabel!int(OpCode.load_global_i32_i32, operand);
                 break;
             case "call":
                 putOpWithLabel!int(OpCode.call_abs_i32, operand);
@@ -113,7 +160,10 @@ ubyte[] assemble(string assembly)
         }
     }
 
-    return app.opSlice;
+    Bytecode bc;
+    bc.textSection = app.opSlice;
+    bc.dataSection = dataAppender.opSlice;
+    return bc;
 }
 
 auto makeOp(OpCode op)
@@ -134,4 +184,77 @@ auto makeImm(T)(T num)
     ubyte[] data = new ubyte[T.sizeof];
     data.write!T(num, 0);
     return data;
+}
+
+unittest
+{
+    string program = ".data
+    :someNumber
+    .int 33
+    .text
+    :main
+    immi 66
+    loadgi 0
+    addi
+    ret";
+
+    auto bc = assemble(program);
+
+    import alu;
+
+    ExecutionUnit e;
+    e.instructions = bc.textSection;
+    e.globals.memory = bc.dataSection;
+    e.run();
+    assert(e.exitCode == 99);
+}
+
+unittest
+{
+    string program = ".data
+    :someNumber
+    .int 33
+    .text
+    :main
+    immi 66
+    loadgi someNumber
+    addi
+    ret";
+
+    auto bc = assemble(program);
+
+    import alu;
+
+    ExecutionUnit e;
+    e.instructions = bc.textSection;
+    e.globals.memory = bc.dataSection;
+    e.run();
+    assert(e.exitCode == 99);
+}
+
+unittest
+{
+    string program = ".data
+    :someNumber
+    .int 33
+    :someOther
+    .int 44
+    .text
+    :main
+    loadgi someOther
+    loadgi someNumber
+    addi
+    storegi someNumber
+    loadgi someNumber
+    ret";
+
+    auto bc = assemble(program);
+
+    import alu;
+
+    ExecutionUnit e;
+    e.instructions = bc.textSection;
+    e.globals.memory = bc.dataSection;
+    e.run();
+    assert(e.exitCode == 77);
 }

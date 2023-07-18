@@ -135,9 +135,22 @@ enum OpCode : ubyte
     max_u64,
 }
 
+enum ImmType
+{
+    i0,
+    i8,
+    i16,
+    i32,
+    i64,
+    u8,
+    u16,
+    u32,
+    u64
+}
+
 auto immediateOperandSize(OpCode code)
 {
-    if (code >= 64)
+    if (code >= 64 || (code >= OpCode.drop_i8 && code <= OpCode.drop_i64))
         return 0;
     else
     {
@@ -153,5 +166,19 @@ auto immediateOperandSize(OpCode code)
             case "i8": return byte.sizeof;
             default: return 0;
         }
+    }
+}
+
+auto immediateOperandType(OpCode code)
+{
+    if (code >= 64 || (code >= OpCode.drop_i8 && code <= OpCode.drop_i64))
+        return ImmType.i0;
+    else
+    {
+        import std.string : split;
+        import std.conv : to;
+
+        auto type = to!string(code).split('_')[$ - 1];
+        return type.to!ImmType;
     }
 }

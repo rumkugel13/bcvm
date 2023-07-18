@@ -31,41 +31,40 @@ string disassemble(ubyte[] machinecode)
         app.put(makeByteOffsetHex(i) ~ " ");
         app.put(makeOpCodeString(op)); // refactor: print correct assembly text, not opcode from enum
 
-        // auto size = immediateOperandSize(op);
-        // if (size > 0)
-        // {
-
-        // }
-
-        with (OpCode) switch (op)
+        auto size = immediateOperandSize(op);
+        if (size > 0)
         {
-        case imm_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case imm_i8:
-            app.put(" " ~ makeOperandString!byte(machinecode, i));
-            break;
-        case load_i32_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case store_i32_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case call_abs_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case jmp_nz_i32_abs_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case jmp_z_i32_abs_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        case jmp_abs_i32:
-            app.put(" " ~ makeOperandString!int(machinecode, i));
-            break;
-        default:
-            break;
+            switch (immediateOperandType(op))
+            {
+            case ImmType.i8:
+                app.put(" " ~ makeOperandString!byte(machinecode, i));
+                break;
+            case ImmType.i16:
+                app.put(" " ~ makeOperandString!short(machinecode, i));
+                break;
+            case ImmType.i32:
+                app.put(" " ~ makeOperandString!int(machinecode, i));
+                break;
+            case ImmType.i64:
+                app.put(" " ~ makeOperandString!long(machinecode, i));
+                break;
+            case ImmType.u8:
+                app.put(" " ~ makeOperandString!ubyte(machinecode, i));
+                break;
+            case ImmType.u16:
+                app.put(" " ~ makeOperandString!ushort(machinecode, i));
+                break;
+            case ImmType.u32:
+                app.put(" " ~ makeOperandString!uint(machinecode, i));
+                break;
+            case ImmType.u64:
+                app.put(" " ~ makeOperandString!ulong(machinecode, i));
+                break;
+            default:
+                break;
+            }
         }
+        
         app.put("\n");
     }
 

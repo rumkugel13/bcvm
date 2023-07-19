@@ -81,6 +81,7 @@ Bytecode assemble(string assembly)
             case "immb":
                 app.put(makeOpWithImm(OpCode.imm_i8, to!byte(operand)));
                 break;
+
             case "storei":
                 app.put(makeOpWithImm(OpCode.store_i32_i32, to!int(operand)));
                 break;
@@ -99,6 +100,7 @@ Bytecode assemble(string assembly)
                 else
                     putOpWithLabel!int(OpCode.load_global_i32_i32, operand);
                 break;
+
             case "call":
                 putOpWithLabel!int(OpCode.call_abs_i32, operand);
                 break;
@@ -111,20 +113,110 @@ Bytecode assemble(string assembly)
             case "jmp":
                 putOpWithLabel!int(OpCode.jmp_abs_i32, operand);
                 break;
+
+            case "cmp_lt":
+                app.put(makeOp(OpCode.cmp_lt_i32));
+                break;
+            case "cmp_le":
+                app.put(makeOp(OpCode.cmp_le_i32));
+                break;
             case "cmp_gt":
                 app.put(makeOp(OpCode.cmp_gt_i32));
                 break;
             case "cmp_ge":
                 app.put(makeOp(OpCode.cmp_ge_i32));
                 break;
-            case "addi":
-                app.put(makeOp(OpCode.add_i32));
+            case "cmp_eq":
+                app.put(makeOp(OpCode.cmp_eq_i32));
                 break;
+            case "cmp_neq":
+                app.put(makeOp(OpCode.cmp_neq_i32));
+                break;
+            case "cmp_ze":
+                app.put(makeOp(OpCode.cmp_ze_i32));
+                break;
+            case "cmp_nze":
+                app.put(makeOp(OpCode.cmp_nze_i32));
+                break;
+
             case "b2i":
                 app.put(makeOp(OpCode.ext_i8_i32));
                 break;
+            case "dropi":
+                app.put(makeOp(OpCode.drop_i32));
+                break;
+            case "dupi":
+                app.put(makeOp(OpCode.dup_i32));
+                break;
+
+            case "landi":
+                app.put(makeOp(OpCode.log_and_i32));
+                break;
+            case "lori":
+                app.put(makeOp(OpCode.log_or_i32));
+                break;
+            case "lnoti":
+                app.put(makeOp(OpCode.log_not_i32));
+                break;
+
+            case "addi":
+                app.put(makeOp(OpCode.add_i32));
+                break;
             case "subi":
                 app.put(makeOp(OpCode.sub_i32));
+                break;
+            case "muli":
+                app.put(makeOp(OpCode.mul_i32));
+                break;
+            case "divi":
+                app.put(makeOp(OpCode.div_i32));
+                break;
+            case "remi":
+                app.put(makeOp(OpCode.rem_i32));
+                break;
+            case "modi":
+                app.put(makeOp(OpCode.mod_i32));
+                break;
+
+            case "shli":
+                app.put(makeOp(OpCode.shl_i32));
+                break;
+            case "shri":
+                app.put(makeOp(OpCode.shr_i32));
+                break;
+            case "sari":
+                app.put(makeOp(OpCode.sar_i32));
+                break;
+
+            case "andi":
+                app.put(makeOp(OpCode.and_i32));
+                break;
+            case "ori":
+                app.put(makeOp(OpCode.or_i32));
+                break;
+            case "xori":
+                app.put(makeOp(OpCode.xor_i32));
+                break;
+
+            case "negi":
+                app.put(makeOp(OpCode.neg_i32));
+                break;
+            case "noti":
+                app.put(makeOp(OpCode.not_i32));
+                break;
+
+            case "powi":
+                app.put(makeOp(OpCode.pow_i32));
+                break;
+            case "mini":
+                app.put(makeOp(OpCode.min_i32));
+                break;
+            case "maxi":
+                app.put(makeOp(OpCode.max_i32));
+                break;
+
+            case "inci":
+                app.put(makeOp(OpCode.inc_i32));
                 break;
             case "deci":
                 app.put(makeOp(OpCode.dec_i32));
@@ -144,6 +236,7 @@ Bytecode assemble(string assembly)
             assert(false, "Function/Jumplabel " ~ value ~ " not found");
         else
         {
+            // refactor: use proper datatype instead of int
             app.opSlice[offset .. offset + int.sizeof] = makeImm!int(cast(int) labelMap[value]);
         }
     }

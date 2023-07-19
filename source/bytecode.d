@@ -72,6 +72,8 @@ unittest
 
     Bytecode bcIn;
     bcIn.deserialize(filePath);
+    assert(bc.textSection.length == bcIn.textSection.length);
+    assert(bc.dataSection.length == bcIn.dataSection.length);
 
     import std.file : remove;
     remove(filePath);

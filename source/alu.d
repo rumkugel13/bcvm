@@ -33,6 +33,9 @@ struct ExecutionUnit
 
             switch (opCode)
             {
+            case OpCode.no_op:
+                break;
+
             case OpCode.imm_i8:
                 imm!byte();
                 break;
@@ -281,7 +284,8 @@ struct ExecutionUnit
         auto offset = callframeStack.size > 0 ? callframeStack.peek().framePointer : 0;
         auto a = locals.load!T(addr + offset);
         operands.push!T(a);
-        debugPrint("Load: ", a, " from ", addr, " in frame ", callframeStack.size / CallFrame.sizeof);
+        debugPrint("Load: ", a, " from ", addr, " in frame ", callframeStack.size / CallFrame
+                .sizeof);
     }
 
     private void store_global(T, U)()

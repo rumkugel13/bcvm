@@ -75,6 +75,10 @@ Bytecode assemble(string assembly)
 
             switch (op)
             {
+            case "no_op":
+                app.put(makeOp(OpCode.no_op));
+                break;
+
             case "immi":
                 app.put(makeOpWithImm(OpCode.imm_i32, to!int(operand)));
                 break;

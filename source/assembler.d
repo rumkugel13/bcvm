@@ -27,7 +27,6 @@ Bytecode assemble(string assembly)
         else
         {
             missingAddressMap[app.opSlice.length + 1] = label;
-            labelMap[label] = 0; // mark as not found
             app.put(makeOpWithImm(op, 0));
         }
     }

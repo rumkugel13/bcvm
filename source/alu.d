@@ -215,8 +215,6 @@ struct ExecutionUnit
             case OpCode.exit:
                 exit!int(); // refactor: assume we return int as return code
                 break;
-            case OpCode.no_op:
-                break;
             default:
                 assert(false, "Unknown / Not implemented Instruction: " ~ opCode);
             }

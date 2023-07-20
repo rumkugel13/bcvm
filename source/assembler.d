@@ -16,6 +16,7 @@ Bytecode assemble(string assembly)
     long[string] labelMap;
     string[long] missingAddressMap;
     Section section = Section.Text;
+    Bytecode bc;
 
     void putOpWithLabel(T)(OpCode op, string label)
     {
@@ -41,10 +42,15 @@ Bytecode assemble(string assembly)
         }
         else if (line.startsWith(":"))
         {
+            string label = line[1 .. $];
             if (section == Section.Text)
-                labelMap[line[1 .. $]] = app.opSlice.length;
+            {
+                labelMap[label] = app.opSlice.length;
+                if (label == "main")
+                    bc.mainAddress = app.opSlice.length;
+            }
             else
-                labelMap[line[1 .. $]] = dataAppender.opSlice.length;
+                labelMap[label] = dataAppender.opSlice.length;
         }
         else if (line.startsWith("."))
         {
@@ -245,7 +251,6 @@ Bytecode assemble(string assembly)
         }
     }
 
-    Bytecode bc;
     bc.textSection = app.opSlice;
     bc.dataSection = dataAppender.opSlice;
     return bc;

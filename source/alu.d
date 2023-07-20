@@ -21,7 +21,7 @@ struct ExecutionUnit
     {
         instructions = bc.textSection;
         globals.memory = bc.dataSection;
-        instructionPointer = 0;
+        instructionPointer = bc.mainAddress;
     }
 
     public void run()

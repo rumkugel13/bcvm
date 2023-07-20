@@ -13,6 +13,7 @@ enum Section
 struct Bytecode
 {
     ubyte[] textSection, dataSection;
+    size_t mainAddress;
 
     void serialize(string filePath)
     {
@@ -24,6 +25,7 @@ struct Bytecode
         file.rawWrite(buf);
         buf.write!uint(cast(uint) textSection.length, 0);
         file.rawWrite(buf);
+        buf.write!uint(cast(uint) mainAddress);
 
         file.rawWrite(dataSection);
         file.rawWrite(textSection);
@@ -41,6 +43,7 @@ struct Bytecode
         ubyte[] buf = new ubyte[4];
         dataSection.length = file.rawRead(buf).peek!uint(0);
         textSection.length = file.rawRead(buf).peek!uint(0);
+        mainAddress = file.rawRead(buf).peek!uint(0);
 
         file.rawRead(dataSection);
         file.rawRead(textSection);

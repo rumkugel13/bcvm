@@ -25,7 +25,7 @@ struct Bytecode
         file.rawWrite(buf);
         buf.write!uint(cast(uint) textSection.length, 0);
         file.rawWrite(buf);
-        buf.write!uint(cast(uint) mainAddress);
+        buf.write!uint(cast(uint) mainAddress, 0);
 
         file.rawWrite(dataSection);
         file.rawWrite(textSection);

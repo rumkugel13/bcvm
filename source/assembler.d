@@ -344,3 +344,23 @@ unittest
     e.run();
     assert(e.exitCode == 77);
 }
+
+unittest
+{
+    string program = ":main
+    immi 32
+    immi 64
+    addi
+    immb 37
+    b2i
+    subi
+    ret";
+
+    auto bytecode = assemble(program);
+
+    import alu;
+    ExecutionUnit e;
+    e.instructions = bytecode.textSection;
+    e.run();
+    assert(e.exitCode == 59);
+}

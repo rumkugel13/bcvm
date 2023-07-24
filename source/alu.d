@@ -624,13 +624,15 @@ struct ExecutionUnit
 
     private void debugPrint(T...)(T args)
     {
-        import std.stdio : writeln;
-
         version (unittest)
         {
         }
         else
-            debug writeln(args);
+            debug {
+                import std.stdio;
+                writeln(args);
+                stdout.flush();
+            }
     }
 }
 

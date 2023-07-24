@@ -2,119 +2,54 @@ import std.stdio;
 
 import memory, opcode, alu, assembler, disassembler;
 
-void main()
+int main(string[] args)
 {
-    writeln("ByteCode VM");
+    if (args.length > 2 && args[1] == "-i")
+    {
+        try
+        {
+            auto bc = assemble(args[2]);
+            ExecutionUnit alu;
+            alu.loadBytecode(bc);
+            alu.run();
+            return alu.exitCode;
+        }
+        catch (Exception e)
+        {
+            writeln(e);
+            stdout.flush();
+            return -1;
+        }
+    }
 
-    StackUnit m;
-    m.push!uint(32);
-    m.push!uint(64);
+    writeln("Run sample program: ");
+    string program = "        .text
+:main
+        immi 0
+        storei 0
+        loadi 0
+        cmp_ze
+        jmp_nz .je0
+        immi 1
+        jmp .end_main
+        jmp .j1
+:.je0
+        immi 2
+        jmp .end_main
+:.j1
+        immi 0
+:.end_main
+        ret";
 
-    assert(m.peek!uint() == 64);
-    m.push!byte(77);
-    assert(m.stackPointer == 9);
-    assert(m.pop!byte() == 77);
-
-    auto val = m.pop!uint();
-    assert(val == 64);
-    assert(m.pop!uint() == 32);
-
-    writeln("MemoryUnit OK");
-
-    string program = ":main
-    immi 32
-    immi 64
-    addi
-    immb 37
-    b2i
-    subi
-    ret";
-
-    auto bytecode = assemble(program);
-
-    writeln("Assembler OK");
-
+    writeln(program);
+    auto bc = assemble(program);
+    writeln(bc.dataSection);
+    writeln(bc.textSection);
+    writeln(disassemble(bc.textSection));
+    stdout.flush();
     ExecutionUnit alu;
-    alu.instructions = bytecode.textSection;
+    alu.loadBytecode(bc);
     alu.run();
-    assert(alu.exitCode == 59);
 
-    writeln("ExecutionUnit OK");
-
-    auto assembly = disassemble(bytecode.textSection);
-    write(assembly);
-
-    writeln("Disassembler OK");
-
-    string program2 = ":main
-        immi 55
-        storei 0
-        immi 30
-        storei 4
-        loadi 4
-        loadi 0
-        call something
-        ret
-        :something
-        storei 0
-        storei 4
-        loadi 0
-        loadi 4
-        subi
-        ret
-    ";
-
-    auto bytecode2 = assemble(program2);
-    write(bytecode2);
-    stdout.flush();
-
-    writeln("Assembler OK");
-
-    auto assembly2 = disassemble(bytecode2.textSection);
-    write(assembly2);
-    stdout.flush();
-
-    writeln("Disassembler OK");
-
-    ExecutionUnit alu2;
-    alu2.instructions = bytecode2.textSection;
-    alu2.run();
-    assert(alu2.exitCode == 25);
-
-    writeln("ExecutionUnit OK");
-
-    import std.conv : to;
-    int number = 10;
-    string fib = ":main
-    immi " ~ to!string(number) ~ "
-    call fibonacci
-    ret
-    :fibonacci
-    storei 0
-    loadi 0
-    immi 1
-    cmp_gt
-    jmp_nz L1
-    loadi 0
-    ret
-    :L1
-    loadi 0
-    deci
-    call fibonacci
-    loadi 0
-    deci 
-    deci
-    call fibonacci
-    addi
-    ret";
-
-    auto fibass = assemble(fib);
-    writeln(fibass);
-    auto fibdis = disassemble(fibass.textSection);
-    writeln(fibdis);
-    stdout.flush();
-    ExecutionUnit fibalu;
-    fibalu.instructions = fibass.textSection;
-    fibalu.run();
-    writeln("Fib of ", number, " is ", fibalu.exitCode);
+    return 0;
 }

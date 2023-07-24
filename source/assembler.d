@@ -2,12 +2,12 @@ module assembler;
 
 import std.bitmanip : write;
 import std.string : split, splitLines, strip, startsWith, empty, isNumeric;
-import std.algorithm : map;
+import std.algorithm : map, find;
 import std.range : array;
 import std.stdio : writeln;
 import std.conv : to;
 import std.array : appender;
-import opcode, bytecode;
+import opcode, bytecode, native;
 
 Bytecode assemble(string assembly)
 {
@@ -242,7 +242,16 @@ Bytecode assemble(string assembly)
     foreach (offset, value; missingAddressMap)
     {
         if (value !in labelMap)
-            assert(false, "Function/Jumplabel " ~ value ~ " not found");
+        {
+            if (!isNative(value))
+            {
+                assert(false, "Function/Jumplabel " ~ value ~ " not found");
+            }
+            else
+            {
+                app.opSlice[offset .. offset + int.sizeof] = makeImm!int(cast(int) getNativeIndex(value));
+            }
+        }
         else
         {
             // refactor: use proper datatype instead of int

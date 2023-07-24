@@ -240,9 +240,15 @@ struct ExecutionUnit
     private void call(T)()
     {
         auto addr = readImmediateOperand!T();
+        if (addr < 0)   // workaround for functions not in bytecode, eg. C stdlib functions
+        {
+            import native, std.conv : to;
+            native.callNative(addr.to!NativeFunction, this);
+            debugPrint("Call native: ", addr.to!NativeFunction.to!string);
+            return;
+        }
+
         uint ret = cast(uint) instructionPointer;
-        // callStack.push!uint(ret); // refactor: use u32 for values for now
-        // frameStack.push!uint(cast(uint) locals.usedBytes);
         callframeStack.push(CallFrame(ret, cast(uint) locals.usedBytes));
         assert(addr < instructions.length);
         instructionPointer = addr; // refactor: absolute value for now
@@ -253,8 +259,6 @@ struct ExecutionUnit
     {
         if (callframeStack.size > 0)
         {
-            // uint addr = callStack.pop!uint();
-            // uint frame = frameStack.pop!uint();
             auto callframe = callframeStack.pop();
             locals.usedBytes = callframe.framePointer;
             instructionPointer = callframe.returnAddress;

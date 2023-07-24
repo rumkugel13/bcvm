@@ -34,7 +34,6 @@ void callNative(NativeFunction index, ref ExecutionUnit e)
         try
         {
             write(val.to!char);
-            stdout.flush();
             e.operands.push!int(val);
         }
         catch (Exception _)

@@ -219,8 +219,10 @@ struct ExecutionUnit
                 assert(false, "Unknown / Not implemented Instruction: " ~ opCode);
             }
 
-            // debugPrint("SP: ", operands.stackPointer, " FP: ", operands.framePointer);
+            // debugPrint("SP: ", operands.stackPointer);
         }
+
+        debugPrint("SP: ", operands.stackPointer);
     }
 
     private void imm(T)()

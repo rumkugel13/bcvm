@@ -13,6 +13,7 @@ Bytecode assemble(string assembly)
 {
     auto app = appender!(ubyte[])();
     auto dataAppender = appender!(ubyte[])();
+    auto metadataAppender = appender!(ubyte[])();
     long[string] labelMap;
     string[long] missingAddressMap;
     Section section = Section.Text;
@@ -67,6 +68,7 @@ Bytecode assemble(string assembly)
                 break;
             case ".int":
                 dataAppender.put(makeImm(to!int(operand)));
+                metadataAppender.put(cast(ubyte)Datatype.i32);
                 break;
             default:
                 assert(false, "Unknown section/directive " ~ line);
@@ -261,6 +263,7 @@ Bytecode assemble(string assembly)
 
     bc.textSection = app.opSlice;
     bc.dataSection = dataAppender.opSlice;
+    bc.metaDataSection = metadataAppender.opSlice;
     return bc;
 }
 

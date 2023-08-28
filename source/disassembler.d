@@ -9,21 +9,81 @@ import opcode, bytecode;
 
 string disassemble(Bytecode bc)
 {
-    auto data = disassembleData(bc.dataSection);
+    auto data = disassembleData(bc.dataSection, bc.metaDataSection);
     auto text = disassemble(bc.textSection);
     return data ~ text;
 }
 
-string disassembleData(ubyte[] data)
+string disassembleData(ubyte[] data, ubyte[] metadata)
 {
     auto app = appender!string();
-    // todo: implement
+    auto dataIndex = 0;
+
+    app.put("Data Section\n");
+
+    foreach (meta; metadata)
+    {
+        app.put(makeByteOffsetHex(dataIndex));
+        app.put(" ");
+        Datatype type = cast(Datatype)meta;
+        app.put(type.to!string());
+        app.put(": ");
+        switch (type)
+        {
+            case Datatype.i8: 
+                app.put(to!string(data.peek!byte(dataIndex)));
+                dataIndex += 1;
+                break;
+            case Datatype.i16: 
+                app.put(to!string(data.peek!short(dataIndex)));
+                dataIndex += 2;
+                break;
+            case Datatype.i32: 
+                app.put(to!string(data.peek!int(dataIndex)));
+                dataIndex += 4;
+                break;
+            case Datatype.i64: 
+                app.put(to!string(data.peek!long(dataIndex)));
+                dataIndex += 8;
+                break;
+            case Datatype.u8: 
+                app.put(to!string(data.peek!ubyte(dataIndex)));
+                dataIndex += 1;
+                break;
+            case Datatype.u16: 
+                app.put(to!string(data.peek!ushort(dataIndex)));
+                dataIndex += 2;
+                break;
+            case Datatype.u32: 
+                app.put(to!string(data.peek!uint(dataIndex)));
+                dataIndex += 4;
+                break;
+            case Datatype.u64: 
+                app.put(to!string(data.peek!ulong(dataIndex)));
+                dataIndex += 8;
+                break;
+            case Datatype.f32: 
+                app.put(to!string(data.peek!float(dataIndex)));
+                dataIndex += 4;
+                break;
+            case Datatype.f64: 
+                app.put(to!string(data.peek!double(dataIndex)));
+                dataIndex += 8;
+                break;
+            default: throw new Exception("Unknown datatype: " ~ meta);
+        }
+
+        app.put("\n");
+    }
+
     return app.opSlice;
 }
 
 string disassemble(ubyte[] machinecode)
 {
     auto app = appender!string();
+
+    app.put("Text Section\n");
 
     foreach (ref i, ubyte code; machinecode)
     {
@@ -91,4 +151,27 @@ string makeOperandString(T)(ubyte[] machinecode, ref size_t offset)
     auto str = to!string(machinecode.peek!T(offset + 1));
     offset += T.sizeof;
     return str;
+}
+
+unittest
+{
+    string program = ".data
+    :someNumber
+    .int 33
+    :someOther
+    .int 44
+    .text
+    :main
+    loadgi someOther
+    loadgi someNumber
+    addi
+    storegi someNumber
+    loadgi someNumber
+    ret";
+
+    import assembler, std.stdio;
+    auto bc = assemble(program);
+    auto disassembly = disassemble(bc);
+    writeln(disassembly);
+    stdout.flush();
 }

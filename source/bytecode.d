@@ -10,9 +10,23 @@ enum Section
     BSS
 }
 
+enum Datatype : ubyte
+{
+    i8,
+    i16,
+    i32,
+    i64,
+    u8,
+    u16,
+    u32,
+    u64,
+    f32,
+    f64
+}
+
 struct Bytecode
 {
-    ubyte[] textSection, dataSection;
+    ubyte[] textSection, dataSection, metaDataSection;
     size_t mainAddress;
 
     void serialize(string filePath)
@@ -21,12 +35,15 @@ struct Bytecode
         file.rawWrite("bcvm");
 
         ubyte[] buf = new ubyte[4];
+        buf.write!uint(cast(uint) metaDataSection.length, 0);
+        file.rawWrite(buf);
         buf.write!uint(cast(uint) dataSection.length, 0);
         file.rawWrite(buf);
         buf.write!uint(cast(uint) textSection.length, 0);
         file.rawWrite(buf);
         buf.write!uint(cast(uint) mainAddress, 0);
 
+        file.rawWrite(metaDataSection);
         file.rawWrite(dataSection);
         file.rawWrite(textSection);
         file.flush();
@@ -41,10 +58,12 @@ struct Bytecode
         assert(magic == "bcvm");
         
         ubyte[] buf = new ubyte[4];
+        metaDataSection.length = file.rawRead(buf).peek!uint(0);
         dataSection.length = file.rawRead(buf).peek!uint(0);
         textSection.length = file.rawRead(buf).peek!uint(0);
         mainAddress = file.rawRead(buf).peek!uint(0);
 
+        file.rawRead(metaDataSection);
         file.rawRead(dataSection);
         file.rawRead(textSection);
         file.close();
@@ -77,6 +96,7 @@ unittest
     bcIn.deserialize(filePath);
     assert(bc.textSection.length == bcIn.textSection.length);
     assert(bc.dataSection.length == bcIn.dataSection.length);
+    assert(bc.metaDataSection.length == bcIn.metaDataSection.length);
 
     import std.file : remove;
     remove(filePath);

@@ -24,6 +24,12 @@ enum Datatype : ubyte
     f64
 }
 
+size_t immediateDataSize(Datatype type)
+{
+    import std.conv: to;
+    return type.to!string()[1..$].to!ubyte()/8;
+}
+
 struct Bytecode
 {
     ubyte[] textSection, dataSection, metaDataSection;

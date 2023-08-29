@@ -20,57 +20,71 @@ string disassembleData(ubyte[] data, ubyte[] metadata)
     auto dataIndex = 0;
 
     app.put("Data Section\n");
+    app.put("Address     Bytecode      Type  Value\n");
 
     foreach (meta; metadata)
     {
         app.put(makeByteOffsetHex(dataIndex));
-        app.put(" ");
-        Datatype type = cast(Datatype)meta;
-        app.put(type.to!string());
         app.put(": ");
+
+        Datatype type = cast(Datatype) meta;
+        auto size = immediateDataSize(type);
+
+        for (int k = 0; k < uint.sizeof; k++) // todo: replace with ulong once we use it
+        {
+            if (k < size)
+                app.put(format("%02X ", getOperand!ubyte(data, dataIndex + k)));
+            else
+                app.put("   ");
+        }
+
+        app.put("  ");
+        app.put(format("%-4s", type.to!string()));
+        app.put("  ");
         switch (type)
         {
-            case Datatype.i8: 
-                app.put(to!string(data.peek!byte(dataIndex)));
-                dataIndex += 1;
-                break;
-            case Datatype.i16: 
-                app.put(to!string(data.peek!short(dataIndex)));
-                dataIndex += 2;
-                break;
-            case Datatype.i32: 
-                app.put(to!string(data.peek!int(dataIndex)));
-                dataIndex += 4;
-                break;
-            case Datatype.i64: 
-                app.put(to!string(data.peek!long(dataIndex)));
-                dataIndex += 8;
-                break;
-            case Datatype.u8: 
-                app.put(to!string(data.peek!ubyte(dataIndex)));
-                dataIndex += 1;
-                break;
-            case Datatype.u16: 
-                app.put(to!string(data.peek!ushort(dataIndex)));
-                dataIndex += 2;
-                break;
-            case Datatype.u32: 
-                app.put(to!string(data.peek!uint(dataIndex)));
-                dataIndex += 4;
-                break;
-            case Datatype.u64: 
-                app.put(to!string(data.peek!ulong(dataIndex)));
-                dataIndex += 8;
-                break;
-            case Datatype.f32: 
-                app.put(to!string(data.peek!float(dataIndex)));
-                dataIndex += 4;
-                break;
-            case Datatype.f64: 
-                app.put(to!string(data.peek!double(dataIndex)));
-                dataIndex += 8;
-                break;
-            default: throw new Exception("Unknown datatype: " ~ meta);
+        case Datatype.i8:
+            app.put(to!string(data.peek!byte(dataIndex)));
+            dataIndex += 1;
+            break;
+        case Datatype.i16:
+            app.put(to!string(data.peek!short(dataIndex)));
+            dataIndex += 2;
+            break;
+        case Datatype.i32:
+            app.put(to!string(data.peek!int(dataIndex)));
+            dataIndex += 4;
+            break;
+        case Datatype.i64:
+            app.put(to!string(data.peek!long(dataIndex)));
+            dataIndex += 8;
+            break;
+        case Datatype.u8:
+            app.put(to!string(data.peek!ubyte(dataIndex)));
+            dataIndex += 1;
+            break;
+        case Datatype.u16:
+            app.put(to!string(data.peek!ushort(dataIndex)));
+            dataIndex += 2;
+            break;
+        case Datatype.u32:
+            app.put(to!string(data.peek!uint(dataIndex)));
+            dataIndex += 4;
+            break;
+        case Datatype.u64:
+            app.put(to!string(data.peek!ulong(dataIndex)));
+            dataIndex += 8;
+            break;
+        case Datatype.f32:
+            app.put(to!string(data.peek!float(dataIndex)));
+            dataIndex += 4;
+            break;
+        case Datatype.f64:
+            app.put(to!string(data.peek!double(dataIndex)));
+            dataIndex += 8;
+            break;
+        default:
+            throw new Exception("Unknown datatype: " ~ meta);
         }
 
         app.put("\n");
@@ -84,14 +98,30 @@ string disassemble(ubyte[] machinecode)
     auto app = appender!string();
 
     app.put("Text Section\n");
+    app.put("Address     OpCode (Operand)   Instr (Value)\n");
 
     foreach (ref i, ubyte code; machinecode)
     {
         auto op = cast(OpCode) code;
-        app.put(makeByteOffsetHex(i) ~ " ");
-        app.put(makeOpCodeString(op)); // refactor: print correct assembly text, not opcode from enum
+        app.put(makeByteOffsetHex(i));
+        app.put(": ");
+
+        app.put(format("0x%02X", code));
+        app.put("  ");
 
         auto size = immediateOperandSize(op);
+
+        for (int k = 0; k < uint.sizeof; k++) // todo: replace with ulong once we use it
+        {
+            if (k < size)
+                app.put(format("%02X ", getOperand!ubyte(machinecode, i + k + 1)));
+            else
+                app.put("   ");
+        }
+
+        app.put(" ");
+        app.put(makeOpCodeString(op)); // refactor: print correct assembly text, not opcode from enum
+
         if (size > 0)
         {
             switch (immediateOperandType(op))
@@ -124,7 +154,7 @@ string disassemble(ubyte[] machinecode)
                 break;
             }
         }
-        
+
         app.put("\n");
     }
 
@@ -133,12 +163,12 @@ string disassemble(ubyte[] machinecode)
 
 string makeByteOffsetDec(size_t offset)
 {
-    return format("%04d", offset);
+    return format("%08d", offset);
 }
 
 string makeByteOffsetHex(size_t offset)
 {
-    return format("0x%04X", offset);
+    return format("0x%08X", offset);
 }
 
 string makeOpCodeString(OpCode op)
@@ -151,6 +181,11 @@ string makeOperandString(T)(ubyte[] machinecode, ref size_t offset)
     auto str = to!string(machinecode.peek!T(offset + 1));
     offset += T.sizeof;
     return str;
+}
+
+auto getOperand(T)(ubyte[] code, size_t offset)
+{
+    return code.peek!T(offset);
 }
 
 unittest
@@ -170,6 +205,7 @@ unittest
     ret";
 
     import assembler, std.stdio;
+
     auto bc = assemble(program);
     auto disassembly = disassemble(bc);
     writeln(disassembly);

@@ -45,48 +45,39 @@ string disassembleData(ubyte[] data, ubyte[] metadata)
         {
         case Datatype.i8:
             app.put(to!string(data.peek!byte(dataIndex)));
-            dataIndex += 1;
             break;
         case Datatype.i16:
             app.put(to!string(data.peek!short(dataIndex)));
-            dataIndex += 2;
             break;
         case Datatype.i32:
             app.put(to!string(data.peek!int(dataIndex)));
-            dataIndex += 4;
             break;
         case Datatype.i64:
             app.put(to!string(data.peek!long(dataIndex)));
-            dataIndex += 8;
             break;
         case Datatype.u8:
             app.put(to!string(data.peek!ubyte(dataIndex)));
-            dataIndex += 1;
             break;
         case Datatype.u16:
             app.put(to!string(data.peek!ushort(dataIndex)));
-            dataIndex += 2;
             break;
         case Datatype.u32:
             app.put(to!string(data.peek!uint(dataIndex)));
-            dataIndex += 4;
             break;
         case Datatype.u64:
             app.put(to!string(data.peek!ulong(dataIndex)));
-            dataIndex += 8;
             break;
         case Datatype.f32:
             app.put(to!string(data.peek!float(dataIndex)));
-            dataIndex += 4;
             break;
         case Datatype.f64:
             app.put(to!string(data.peek!double(dataIndex)));
-            dataIndex += 8;
             break;
         default:
             throw new Exception("Unknown datatype: " ~ meta);
         }
 
+        dataIndex += size;
         app.put("\n");
     }
 

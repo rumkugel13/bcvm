@@ -514,16 +514,16 @@ struct ExecutionUnit
     {
         auto b = operands.pop!T();
         auto a = operands.pop!T();
-        operands.push!T(a >> b);
-        debugPrint("Shr: ", a, " >> ", b, " = ", operands.peek!T());
+        operands.push!T(a >>> b);
+        debugPrint("Shr: ", a, " >>> ", b, " = ", operands.peek!T());
     }
 
     private void sar(T)()
     {
         auto b = operands.pop!T();
         auto a = operands.pop!T();
-        operands.push!T(a >>> b);
-        debugPrint("Sar: ", a, " >>> ", b, " = ", operands.peek!T());
+        operands.push!T(a >> b);
+        debugPrint("Sar: ", a, " >> ", b, " = ", operands.peek!T());
     }
 
     private void and(T)()

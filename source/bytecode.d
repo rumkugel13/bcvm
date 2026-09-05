@@ -48,6 +48,7 @@ struct Bytecode
         buf.write!uint(cast(uint) textSection.length, 0);
         file.rawWrite(buf);
         buf.write!uint(cast(uint) mainAddress, 0);
+        file.rawWrite(buf);
 
         file.rawWrite(metaDataSection);
         file.rawWrite(dataSection);
